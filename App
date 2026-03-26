@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calorie Tracker Pro</title>
+
+<style>
+body {
+  background: #0d0d0d;
+  color: white;
+  font-family: Arial;
+  padding: 15px;
+}
+
+h1 {
+  text-align: center;
+}
+
+.card {
+  background: #1a1a1a;
+  padding: 15px;
+  margin-bottom: 15px;
+  border-radius: 12px;
+}
+
+input, button {
+  width: 100%;
+  padding: 10px;
+  margin-top: 8px;
+  border-radius: 8px;
+  border: none;
+}
+
+button {
+  background: #333;
+  color: white;
+}
+
+table {
+  width: 100%;
+  margin-top: 10px;
+  border-collapse: collapse;
+}
+
+td {
+  padding: 6px;
+  border-bottom: 1px solid #333;
+  text-align: center;
+}
+</style>
+</head>
+
+<body>
+
+<h1>🔥 Tracker</h1>
+
+<div class="card">
+<h2>Calories restantes</h2>
+<p id="calories"></p>
+</div>
+
+<div class="card">
+<h2>Ajouter nourriture</h2>
+<input id="foodCalories" placeholder="Calories (ex: 500)">
+<button onclick="addFood()">Ajouter</button>
+</div>
+
+<div class="card">
+<h2>Activité</h2>
+<button onclick="addActivity(300)">Muscu</button>
+<button onclick="addActivity(500)">Padel</button>
+</div>
+
+<div class="card">
+<h2>Pas</h2>
+<input id="steps" placeholder="ex: 8000">
+<button onclick="addSteps()">Ajouter</button>
+</div>
+
+<div class="card">
+<h2>Fin de journée</h2>
+<button onclick="saveDay()">Enregistrer la journée</button>
+</div>
+
+<div class="card">
+<h2>📊 Historique (7 jours)</h2>
+<table id="history"></table>
+</div>
+
+<script>
+const DAILY_GOAL = 2800;
+
+let data = JSON.parse(localStorage.getItem("calorieData")) || {
+  today: DAILY_GOAL,
+  history: []
+};
+
+function update() {
+  document.getElementById("calories").innerText = Math.round(data.today);
+  renderHistory();
+}
+
+function addFood() {
+  let c = parseInt(document.getElementById("foodCalories").value);
+  if (!isNaN(c)) {
+    data.today -= c;
+    save();
+  }
+}
+
+function addActivity(c) {
+  data.today += c;
+  save();
+}
+
+function addSteps() {
+  let s = parseInt(document.getElementById("steps").value);
+  if (!isNaN(s)) {
+    data.today += s * 0.04;
+    save();
+  }
+}
+
+function saveDay() {
+  let deficit = DAILY_GOAL - data.today;
+
+  data.history.unshift({
+    date: new Date().toLocaleDateString(),
+    calories: DAILY_GOAL - data.today,
+    deficit: deficit
+  });
+
+  if (data.history.length > 7) data.history.pop();
+
+  data.today = DAILY_GOAL;
+  save();
+}
+
+function renderHistory() {
+  let table = document.getElementById("history");
+  table.innerHTML = "";
+
+  data.history.forEach(day => {
+    let row = `<tr>
+      <td>${day.date}</td>
+      <td>${Math.round(day.calories)} kcal</td>
+      <td>${Math.round(day.deficit)} kcal</td>
+    </tr>`;
+    table.innerHTML += row;
+  });
+}
+
+function save() {
+  localStorage.setItem("calorieData", JSON.stringify(data));
+  update();
+}
+
+update();
+</script>
+
+</body>
+</html>
